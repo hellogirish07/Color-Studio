@@ -100,16 +100,6 @@ let toastTimer = null;
 const toastBackground = ref("#FF6B4A");
 
 // show a temporary toast notification
-// function showToast(message) {
-//   toastMessage.value = message;
-
-//   clearTimeout(toastTimer);
-
-//   toastTimer = setTimeout(() => {
-//     toastMessage.value = "";
-//   }, 1500);
-// }
-
 function showToast(message, background = colors.value[0]) {
   toastMessage.value = message;
   toastBackground.value = background;
@@ -121,15 +111,20 @@ function showToast(message, background = colors.value[0]) {
   }, 1500);
 }
 
+// toggle the lock state of a color
 function toggleLock(index) {
   lockedColors.value[index] = !lockedColors.value[index];
+
+  const color = colors.value[index];
+
+  if (lockedColors.value[index]) {
+    showToast(`${color} Locked!`, color);
+  } else {
+    showToast(`${color} Unlocked!`, color);
+  }
 }
 
 // copy color to clipboard
-// async function copyColor(color) {
-//   await navigator.clipboard.writeText(color);
-//   showToast("Color copied!");
-// }
 async function copyColor(color) {
   await navigator.clipboard.writeText(color);
   showToast("Color copied!", color);
