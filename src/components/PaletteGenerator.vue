@@ -95,20 +95,34 @@ function generatePalette() {
   });
 }
 
-const toastMessage = ref("");
-let toastTimer = null;
-const toastBackground = ref("#FF6B4A");
+// let toastTimer = null;
+const toastItems = ref([]);
+let toastId = 0;
+const toastTimers = new Map();
 
-// show a temporary toast notification
 function showToast(message, background = colors.value[0]) {
-  toastMessage.value = message;
-  toastBackground.value = background;
+  const id = ++toastId;
 
-  clearTimeout(toastTimer);
+  toastItems.value.push({
+    id,
+    message,
+    background
+  });
 
-  toastTimer = setTimeout(() => {
-    toastMessage.value = "";
-  }, 1500);
+  const timer = setTimeout(() => {
+    removeToast(id);
+  }, 2500);
+
+  toastTimers.set(id, timer);
+}
+
+function removeToast(id) {
+  clearTimeout(toastTimers.get(id));
+  toastTimers.delete(id);
+
+  toastItems.value = toastItems.value.filter(
+    toast => toast.id !== id
+  );
 }
 
 // toggle the lock state of a color
@@ -161,6 +175,9 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeyboard);
+
+  toastTimers.forEach(timer => clearTimeout(timer));
+  toastTimers.clear();
 });
 </script>
 
@@ -227,7 +244,7 @@ onUnmounted(() => {
     <p class="keyboard-hint">Press SPACE to generate a new palette</p>
   </section>
 
-  <Transition name="toast">
+  <!-- <Transition name="toast">
     <div
       v-if="toastMessage"
       class="toast-notification"
@@ -238,5 +255,23 @@ onUnmounted(() => {
       <span class="toast-icon">✓</span>
       {{ toastMessage }}
     </div>
-  </Transition>
+  </Transition> -->
+
+  <TransitionGroup
+  name="toast"
+  tag="div"
+  class="toast-container"
+>
+  <div
+    v-for="toast in toastItems"
+    :key="toast.id"
+    class="toast-notification"
+    :style="{ backgroundColor: toast.background }"
+    role="status"
+    aria-live="polite"
+  >
+    <span class="toast-icon">✓</span>
+    {{ toast.message }}
+  </div>
+</TransitionGroup>
 </template>
